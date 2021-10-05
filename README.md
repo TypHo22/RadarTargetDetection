@@ -53,24 +53,30 @@ RDM = RDM/max(max(RDM)); % Normalizing
 %than the Range Doppler Map as the CUT cannot be located at the edges of
 %matrix. Hence,few cells will not be thresholded. To keep the map size same
 % set those values to 0. 
- 
-for a = trainRows+Gr+1 : (Nr/2)-(trainRows+Gr)
-    for b = trainCollumns+Gd+1 : (Nd)-(trainCollumns+Gd)
+% Determine the number of Training cells for each dimension. Similarly, pick the number of guard cells.
+% Slide the cell under test across the complete matrix. Make sure the CUT has margin for Training and Guard cells from the edges.
+% For every iteration sum the signal level within all the training cells. To sum convert the value from logarithmic to linear using db2pow function.
+% Average the summed values for all of the training cells used. After averaging convert it back to logarithmic using pow2db.
+% Further add the offset to it to determine the threshold.
+% Next, compare the signal under CUT against this threshold.
+If the CUT level > threshold assign it a value of 1, else equate it to 0.
+for a = tR+Gr+1 : (size(Mix,1)/2)-(tR+Gr)
+    for b = tC+Gd+1 : (size(Mix,2))-(tC+Gd)
         %Create a vector to store noise_level for each iteration on training cells
-        noise_level = zeros(1,1);
+        noiseLevel = zeros(1,1);
         %Step through each of bins and the surroundings of the CUT
-        for c = a - (trainRows+Gr) : a + (trainRows+Gr)
-            for d = b-(trainCollumns + Gd) : b + (trainCollumns + Gd)
+        for c = a - (tR+Gr) : a + (tR+Gr)
+            for d = b-(tC + Gd) : b + (tC + Gd)
                 %Exclude the Guard cells and CUT cells
                 if (abs(a - c) > Gr || abs(b - d) > Gd)
                     %Convert db to power
-                    noise_level = noise_level + db2pow(RDM(c,d)); %requires SignalToolbox
+                    noiseLevel = noiseLevel + db2pow(RDM(c,d)); %requires SignalToolbox
                 end
             end
         end
         
-        %Calculate threshould from noise average then add the offset
-        threshold = pow2db(noise_level/(2*(trainCollumns+Gd+1)*2*(trainRows+Gr+1)-(Gr*Gd)-1));
+        %Calculate threshold from noise average then add the offset
+        threshold = pow2db(noiseLevel/(2*(tC+Gd+1)*2*(tR+Gr+1)-(Gr*Gd)-1));
         %Add the SNR to the threshold
         threshold = threshold + offSet;
         %Measure the signal in Cell Under Test(CUT) and compare against
