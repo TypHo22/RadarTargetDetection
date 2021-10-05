@@ -57,7 +57,7 @@ Mix = zeros(1,length(t)); %beat signal
 
 %Similar vectors for range_covered and time delay.
 r_t=zeros(1,length(t));
-trainCollumns=zeros(1,length(t));
+tC=zeros(1,length(t));
 
 
 %% Signal generation and Moving Target simulation
@@ -68,13 +68,13 @@ for a=1:1:size(t,2)
     % *%TODO* :
     %For each time stamp update the Range of the Target for constant velocity. 
     r_t(a) = targetPos+(targetSpeed*t(a));
-    trainCollumns(a) = 2*r_t(a)/c; % Time delay 
+    tC(a) = 2*r_t(a)/c; % Time delay 
     
     % *%TODO* :
     %For each time sample we need update the transmitted and
     %received signal. 
     Tx(a) = cos(2 * pi * (fc * t(a) + slope * (t(a)^2)/2));
-    Rx(a) = cos(2 * pi * (fc * (t(a) - trainCollumns(a)) + slope * ((t(a)-trainCollumns(a))^2)/2));
+    Rx(a) = cos(2 * pi * (fc * (t(a) - tC(a)) + slope * ((t(a)-tC(a))^2)/2));
     
     % *%TODO* :
     %Now by mixing the Transmit and Receive generate the beat signal
@@ -156,8 +156,8 @@ title('Radar Output');
 
 % *%TODO* :
 %Select the number of Training Cells in both the dimensions.
-trainRows = 9;
-trainCollumns = 7;
+tR = 9;%trainRows
+tC = 7;%trainCollumns
 
 % *%TODO* :
 %Select the number of Guard Cells in both dimensions around the Cell under 
@@ -199,24 +199,30 @@ RDM = RDM/max(max(RDM)); % Normalizing
 %than the Range Doppler Map as the CUT cannot be located at the edges of
 %matrix. Hence,few cells will not be thresholded. To keep the map size same
 % set those values to 0. 
- 
-for a = trainRows+Gr+1 : (Nr/2)-(trainRows+Gr)
-    for b = trainCollumns+Gd+1 : (Nd)-(trainCollumns+Gd)
+% Determine the number of Training cells for each dimension. Similarly, pick the number of guard cells.
+% Slide the cell under test across the complete matrix. Make sure the CUT has margin for Training and Guard cells from the edges.
+% For every iteration sum the signal level within all the training cells. To sum convert the value from logarithmic to linear using db2pow function.
+% Average the summed values for all of the training cells used. After averaging convert it back to logarithmic using pow2db.
+% Further add the offset to it to determine the threshold.
+% Next, compare the signal under CUT against this threshold.
+If the CUT level > threshold assign it a value of 1, else equate it to 0.
+for a = tR+Gr+1 : (size(Mix,1)/2)-(tR+Gr)
+    for b = tC+Gd+1 : (size(Mix,2))-(tC+Gd)
         %Create a vector to store noise_level for each iteration on training cells
-        noise_level = zeros(1,1);
+        noiseLevel = zeros(1,1);
         %Step through each of bins and the surroundings of the CUT
-        for c = a - (trainRows+Gr) : a + (trainRows+Gr)
-            for d = b-(trainCollumns + Gd) : b + (trainCollumns + Gd)
+        for c = a - (tR+Gr) : a + (tR+Gr)
+            for d = b-(tC + Gd) : b + (tC + Gd)
                 %Exclude the Guard cells and CUT cells
                 if (abs(a - c) > Gr || abs(b - d) > Gd)
                     %Convert db to power
-                    noise_level = noise_level + db2pow(RDM(c,d)); %requires SignalToolbox
+                    noiseLevel = noiseLevel + db2pow(RDM(c,d)); %requires SignalToolbox
                 end
             end
         end
         
-        %Calculate threshould from noise average then add the offset
-        threshold = pow2db(noise_level/(2*(trainCollumns+Gd+1)*2*(trainRows+Gr+1)-(Gr*Gd)-1));
+        %Calculate threshold from noise average then add the offset
+        threshold = pow2db(noiseLevel/(2*(tC+Gd+1)*2*(tR+Gr+1)-(Gr*Gd)-1));
         %Add the SNR to the threshold
         threshold = threshold + offSet;
         %Measure the signal in Cell Under Test(CUT) and compare against
@@ -232,11 +238,6 @@ for a = trainRows+Gr+1 : (Nr/2)-(trainRows+Gr)
 end
 
 RDM(RDM~=0 & RDM~=1) = 0;
-
-
-
-
-
 
 
 % *%TODO* :
