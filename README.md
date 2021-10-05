@@ -5,6 +5,13 @@ Example code for radar detection with matlab
 a FMCW waveform. Define its Bandwidth (B), chirp time (Tchirp) and slope of the chirp.</b>
 ![image](https://user-images.githubusercontent.com/42981587/136083523-32aa7553-848c-4c45-95ee-adc8b489f4f6.png)
 
+I define the targetObject at the following position and velocity:
+```matlab
+% define the target's initial position and velocity. Note : Velocity
+% remains contant
+targetPos = 77;
+targetSpeed = 30;
+```
 
 
 
@@ -21,7 +28,7 @@ Plot show maximum of amplitude normalized over speed and range. Noisy data aroun
 
 
 <b>Implement the 2D CFAR process on the output of 2D FFT operation, i.e the Range Doppler Map.</b>
-
+```matlab
 %design a loop such that it slides the CUT across range doppler map by
 %giving margins at the edges for Training and Guard Cells.
 %For every iteration sum the signal level within all the training
@@ -40,7 +47,7 @@ Plot show maximum of amplitude normalized over speed and range. Noisy data aroun
 RDM = RDM/max(max(RDM)); % Normalizing
 
 
-```matlab
+
 % *%TODO* :
 % The process above will generate a thresholded block, which is smaller 
 %than the Range Doppler Map as the CUT cannot be located at the edges of
