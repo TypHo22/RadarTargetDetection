@@ -30,7 +30,8 @@ Plot show maximum of amplitude normalized over speed and range. Noisy data aroun
 <b>Implement the 2D CFAR process on the output of 2D FFT operation, i.e the Range Doppler Map.</b>
 Remove the noise from our signal peak do this by applying the CFAR Algorithm. Shift a matrix consisting of guard and train cells
 through the signal matrix and check if cellUnder Test(look at image) cell is lower or higher then the threshold. The threshold gets calculated 
-by calculating the signal power (db2pow) of all the trainingCells. If higher set to 1, if lower set to 0
+by calculating the signal power (db2pow) of all the trainingCells. If higher set to 1, if lower set to 0. I have to admit the nested for loop here is not good practice
+costly in performance.
 
 ![image](https://user-images.githubusercontent.com/42981587/136104565-e67206ae-3985-4d35-8e7c-5760b0b4f5ec.png)
 
