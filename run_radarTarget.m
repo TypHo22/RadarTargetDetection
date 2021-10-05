@@ -205,7 +205,7 @@ RDM = RDM/max(max(RDM)); % Normalizing
 % Average the summed values for all of the training cells used. After averaging convert it back to logarithmic using pow2db.
 % Further add the offset to it to determine the threshold.
 % Next, compare the signal under CUT against this threshold.
-If the CUT level > threshold assign it a value of 1, else equate it to 0.
+%If the CUT level > threshold assign it a value of 1, else equate it to 0.
 for a = tR+Gr+1 : (size(Mix,1)/2)-(tR+Gr)
     for b = tC+Gd+1 : (size(Mix,2))-(tC+Gd)
         %Create a vector to store noise_level for each iteration on training cells
